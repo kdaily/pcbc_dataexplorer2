@@ -7,75 +7,80 @@
 
 library(shiny)
 
-shinyUI(
-  navbarPage("PCBC Data Explorer", theme=shinytheme("cerulean"),
-             
-             tabPanel("mRNA",
-                      sidebarLayout(
-                        sidebarPanel(h3("mRNA Sidebar"),
-                                     h4("List of gene symbols:"),
-                                     tags$textarea(id="gene_list",
-                                                   rows=8, cols=20,
-                                                   paste0(sample_gene_list, collapse='\n')), width=3),
-                        mainPanel(h2("mRNA-based View"),
-                                  p("The input is based on genes. This updates other views using a gene ID mapping."),
-                                  tabsetPanel(
-                                    tabPanel("mRNA",
-                                             h3('Heatmap from selected genes')),
-                                    tabPanel("miRNA",
-                                             h3('Show heatmap of miRNAs targeting selected genes')),
-                                    tabPanel("Methylation",
-                                             h3('Show methylation heatmap of selected genes.')),
-                                    selected="mRNA"),
-                                  width=9
-                        )
-                      )
-             ),
+mySidebar <- sidebarPanel(
+  tabsetPanel(id='searchMode',
+              tabPanel(
+                "mRNA",
+                
+                selectInput("mrna_search", "Search by:",
+                            c("Gene Symbols" = "symbol",
+                              "Pathway" = "pathway")),
+                
+                conditionalPanel(condition = "input.mrna_search == 'symbol'",
+                                 h4("Gene symbols:"),
+                                 tags$textarea(id="gene_list",
+                                               rows=8, cols=20,
+                                               paste0(sample_gene_list, collapse='\n'))),
+                conditionalPanel(condition = "input.mrna_search == 'pathway'",
+                                 selectInput("mrna_pathway",
+                                             h5("Pathways:"),
+                                             choices = c("Foo", "Bar", "Baz"),
+                                             selectize=T, multiple=F))
+              ),
+              tabPanel("miRNA",
+                       h4("miRNA symbols:"),
+                       tags$textarea(id="mirna_list",
+                                     rows=8, cols=20,
+                                     paste0(sample_mirna_list, collapse='\n'))),
+              tabPanel("DNA",
+                       h4("Chromosomal locations:"),
+                       tags$textarea(id="methyl_list",
+                                     rows=8, cols=25,
+                                     paste0(sample_methyl_list, collapse='\n'))),
+              selected="mRNA"),
+  width=2)
 
-             tabPanel("miRNA",
-                      sidebarLayout(
-                        sidebarPanel(h3("miRNA Sidebar"),
-                                     h4("List of miRNA names:"),
-                                     tags$textarea(id="mirna_list",
-                                                   rows=8, cols=20,
-                                                   paste0(sample_mirna_list, collapse='\n')), width=3),
-                        mainPanel(h2("microRNA-based View"),
-                                  p("The input is based on micro-RNAs. This updates other views using a miRNA ID mapping."),
-                                  tabsetPanel(
-                                    tabPanel("mRNA",
-                                             h3('Show heatmap of genes targeted by the selected miRNAs')),
-                                    tabPanel("miRNA",
-                                             h3('miRNA heatmap from selected miRNAs')),
-                                    tabPanel("Methylation",
-                                             h3('Show methylation heatmap of genes targeted by miRNAs.')),
-                                    selected="miRNA"
-                                    )
-                        )
-                      )
-             ),
-             
-             tabPanel("DNA",
-                      sidebarLayout(
-                        sidebarPanel(h3("DNA Sidebar"),
-                                     h4("List of chromosomal locations:"),
-                                     tags$textarea(id="methyl_list",
-                                                   rows=8, cols=30,
-                                                   paste0(sample_methyl_list, collapse='\n')), width=3),
-                        mainPanel(h2("DNA-based View"),
-                                  p("The input is based on methylated regions. This updates other views using chromosomal locations."),
-                                  tabsetPanel(
-                                    tabPanel("mRNA",
-                                             h3("Show heatmap of genes in chromosomal regions")),
-                                    tabPanel("miRNA",
-                                             h3("Show heatmap of miRNAs targeting genes in chromosomal regions")),
-                                    tabPanel("Methylation",
-                                             h3("Show heatmap of methylation probes in chromosomal regions")),
-                                    selected="Methylation")
-                        )
-                      )
-             )
-             
-             
+myMain <- mainPanel(
+  h2("View"),
+  tabsetPanel(
+    tabPanel("mRNA",
+             conditionalPanel(
+               condition = "input.searchMode == 'mRNA'",
+               h3('Selected genes')),
+             conditionalPanel(
+               condition = "input.searchMode == 'miRNA'",
+               h3('Genes targeting selected miRNAs')),
+             conditionalPanel(
+               condition = "input.searchMode == 'DNA'",
+               h3('Genes in selected regions'))
+    ),
+    tabPanel("miRNA",
+             conditionalPanel(
+               condition = "input.searchMode == 'mRNA'",
+               h3('miRNAs targeting selected genes')),
+             conditionalPanel(
+               condition = "input.searchMode == 'miRNA'",
+               h3('Selected miRNAs')),
+             conditionalPanel(
+               condition = "input.searchMode == 'DNA'",
+               h3('miRNAs in selected regions'))
+    ),
+    tabPanel("Methylation",
+             conditionalPanel(
+               condition = "input.searchMode == 'mRNA'",
+               h3('Methylation of selected genes')),
+             conditionalPanel(
+               condition = "input.searchMode == 'miRNA'",
+               h3('Search not available.')),
+             conditionalPanel(
+               condition = "input.searchMode == 'DNA'",
+               h3('Methylation of selected regions.'))
+    )), width=9)
+
+shinyUI(
+  fluidPage(title="PCBC Data Explorer",
+            theme=shinytheme("united"),
+            sidebarLayout(sidebarPanel=mySidebar, 
+                          mainPanel=myMain)
   )
 )
-

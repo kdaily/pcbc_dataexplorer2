@@ -11,10 +11,11 @@ mySidebar <- sidebarPanel(
   tabsetPanel(id='searchMode',
               tabPanel(
                 "mRNA",
-                
+                br(),
                 selectInput("mrna_search", "Search by:",
                             c("Gene Symbols" = "symbol",
-                              "Pathway" = "pathway")),
+                              "Pathway" = "pathway",
+                              "Significant genes" = "siggenelist")),
                 
                 conditionalPanel(condition = "input.mrna_search == 'symbol'",
                                  h4("Gene symbols:"),
@@ -25,23 +26,28 @@ mySidebar <- sidebarPanel(
                                  selectInput("mrna_pathway",
                                              h5("Pathways:"),
                                              choices = c("Foo", "Bar", "Baz"),
-                                             selectize=T, multiple=F))
-              ),
+                                             selectize=T, multiple=F)),
+                conditionalPanel(condition = "input.mrna_search == 'siggenelist'",
+                                 selectInput("selected_Significant_GeneList",
+                                             h5("Precomputed Significant gene lists (?)"),
+                                             selectize=T, 
+                                             #loaded from getDATA.R
+                                             choices = c())#sort(names(precomputed_enrichedPathways_in_geneLists)))
+                                 )),
               tabPanel("miRNA",
                        h4("miRNA symbols:"),
                        tags$textarea(id="mirna_list",
                                      rows=8, cols=20,
                                      paste0(sample_mirna_list, collapse='\n'))),
-              tabPanel("DNA",
-                       h4("Chromosomal locations:"),
-                       tags$textarea(id="methyl_list",
-                                     rows=8, cols=25,
-                                     paste0(sample_methyl_list, collapse='\n'))),
+#               tabPanel("DNA",
+#                        h4("Chromosomal locations:"),
+#                        tags$textarea(id="methyl_list",
+#                                      rows=8, cols=25,
+#                                      paste0(sample_methyl_list, collapse='\n'))),
               selected="mRNA"),
   width=2)
 
 myMain <- mainPanel(
-  h2("View"),
   tabsetPanel(
     tabPanel("mRNA",
              conditionalPanel(

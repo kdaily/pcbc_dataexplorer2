@@ -6,6 +6,7 @@
 #
 
 library(shiny)
+library(shinythemes)
 
 mySidebar <- sidebarPanel(
   tabsetPanel(id='searchMode',
